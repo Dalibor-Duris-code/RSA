@@ -1,13 +1,7 @@
 import sympy
 import random
-import math
 import unidecode
-import re
-
 from sympy.core.evalf import N
-
-g_blockLen = 5
-g_binaryLen = 8
 
 def genPrimeNum():
     return sympy.randprime(1*(10**12), (1*10**13))
@@ -38,7 +32,7 @@ def modInverse(a, m):
     return x
 
 def generateKey():
-    
+    kluce = {}
     p = genPrimeNum()
     q = genPrimeNum()
 
@@ -53,59 +47,45 @@ def generateKey():
         index = gcd(e, phi)
     d = modInverse(e, phi)
 
-    key = {}
-    key = { 'e':e, 'd':d, 'n':n }
-    return key
+    kluce = {'d': d, 'e': e, 'n': n}
+    return kluce
 
+def rozdelenie(vstup, pocet):
+    part = []
+    for i in range(0,len(vstup),pocet):
+        part.append(vstup[i:i + pocet])
+    return part
 
-# def encryption(e, n, plainText):
-#     plainText = unidecode.unidecode(plainText)
-#     blockLen = g_blockLen
-#     binaryLen = g_binaryLen
-#     blocks = []
-#     for i in range(0, len(plainText), blockLen):
-#         blocks.append(plainText[i: i + blockLen])
+def sifruj(e,n, vstupText):
+    vstupText = unidecode.unidecode(vstupText)
+    
+    text = rozdelenie(vstupText,5)
+    
+    chars = []
+    bchars = []
+    sifrovanyText = ''
+    bpart = ''
 
-#     ciphertext = ''
-#     for block in blocks:
-#         chars = []
-#         for char in block:
-#             chars.append(ord(char))
-#         binaryChars = []
-#         for char in chars:
-#             binaryChars.append(format(char, 'b').zfill(binaryLen))
-#         binaryBlock = int(''.join(binaryChars), 2)
-#         encrypt = pow(binaryBlock, e, n)
-#         ciphertext += str(encrypt) + ' '
-
-#     return ciphertext
-
-# def decryption(d, n, cipherText):
-#     cipherText = re.sub(r'[^0-9 ]', '', cipherText)
-#     blockLen = g_blockLen * g_binaryLen
-#     binaryLen = g_binaryLen
-#     blocks = cipherText.split()
-
-#     plainText = ''
-#     for block in blocks:
-#         decrypt = pow(int(block), d, n)
-#         binaryBlock = format(decrypt, 'b').zfill(blockLen)
-#         binaryChars = []
-#         for i in range(0, len(binaryBlock), binaryLen):
-#             binaryChars.append(binaryBlock[i: i + binaryLen])
-#         chars = []
-#         for bchar in binaryChars:
-#             if int(bchar, 2) != 0:
-#                 chars.append(int(bchar, 2))
-#         for char in chars:
-#             plainText += chr(char)
-
-#     return plainText
-
-# #print(generateKey())
-# keys = generateKey()
-# #print(keys)
-# kokotina = encryption(keys['e'],keys['n'],'kokot jebnuty')
-# print(kokotina)
-# pica = decryption(keys['d'], keys['n'],kokotina)
-# print(pica)
+    for part in text:    
+        for char in part:
+            chars.append(ord(char))
+        for bchar in chars:
+            bchars.append(bin(bchar).replace("0b","").zfill(12))
+        bpart = bpart.join(bchars)
+        cislo = int(bpart,2)
+        sifro = pow(cislo, e,n)
+        sifrovanyText = sifrovanyText + str(sifro)
+        sifrovanyText = sifrovanyText + ' '
+    
+    # print(text)
+    # print(chars)
+    # print(bchars)
+    # print(number)
+    # print(str(sifrovanyText))
+    return sifrovanyText
+    
+    
+def desifruj(d,n, sifrovanyText):
+    desifrovane = [str(pow(char, d, n)) for char in sifrovanyText]
+    vystup = [chr(int(char2)) for char2 in desifrovane]
+    return ''.join(vystup)
