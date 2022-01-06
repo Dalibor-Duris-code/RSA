@@ -2,6 +2,7 @@ import sympy
 import random
 import unidecode
 from sympy.core.evalf import N
+import re
 
 def genPrimeNum():
     return sympy.randprime(1*(10**12), (1*10**13))
@@ -61,21 +62,23 @@ def sifruj(e,n, vstupText):
     
     text = rozdelenie(vstupText,5)
     
-    chars = []
-    bchars = []
     sifrovanyText = ''
     bpart = ''
+    chars = []
+    bchars = []
 
-    for part in text:    
+    for part in text:   
         for char in part:
             chars.append(ord(char))
         for bchar in chars:
             bchars.append(bin(bchar).replace("0b","").zfill(12))
-        bpart = bpart.join(bchars)
-        cislo = int(bpart,2)
-        sifro = pow(cislo, e,n)
-        sifrovanyText = sifrovanyText + str(sifro)
+        bpart = ''.join(bchars)
+        number = int(bpart,2)
+        sifra = pow(number, e,n)
+        sifrovanyText = sifrovanyText + str(sifra)
         sifrovanyText = sifrovanyText + ' '
+        bchars.clear()
+        chars.clear()
     
     # print(text)
     # print(chars)
@@ -86,6 +89,22 @@ def sifruj(e,n, vstupText):
     
     
 def desifruj(d,n, sifrovanyText):
-    desifrovane = [str(pow(char, d, n)) for char in sifrovanyText]
-    vystup = [chr(int(char2)) for char2 in desifrovane]
-    return ''.join(vystup)
+    blockLen = 5 * 12
+    binaryLen = 12
+    blocks = sifrovanyText.split()
+
+    plainText = ''
+    for block in blocks:
+        decrypt = pow(int(block), d, n)
+        binaryBlock = format(decrypt, 'b').zfill(blockLen)
+        binaryChars = []
+        for i in range(0, len(binaryBlock), binaryLen):
+            binaryChars.append(binaryBlock[i: i + binaryLen])
+        chars = []
+        for bchar in binaryChars:
+            if int(bchar, 2) != 0:
+                chars.append(int(bchar, 2))
+        for char in chars:
+            plainText += chr(char)
+
+    return plainText
