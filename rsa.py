@@ -2,7 +2,6 @@ import sympy
 import random
 import unidecode
 from sympy.core.evalf import N
-import re
 
 def genPrimeNum():
     return sympy.randprime(1*(10**12), (1*10**13))
@@ -57,6 +56,14 @@ def rozdelenie(vstup, pocet):
         part.append(vstup[i:i + pocet])
     return part
 
+def binToDec(number):
+    x = int(number,2)
+    return x
+    
+def decToBin(number,pos):
+    x = bin(number).replace("0b","").zfill(pos)
+    return x
+
 def sifruj(e,n, vstupText):
     vstupText = unidecode.unidecode(vstupText)
     
@@ -70,13 +77,19 @@ def sifruj(e,n, vstupText):
     for part in text:   
         for char in part:
             chars.append(ord(char))
+        
+        #print(chars)
+
         for bchar in chars:
-            bchars.append(bin(bchar).replace("0b","").zfill(12))
+            bchars.append(decToBin(bchar,12))
+        
+        #print(bchars)
+        
         bpart = ''.join(bchars)
-        number = int(bpart,2)
+        number = binToDec(bpart)
         sifra = pow(number, e,n)
         sifrovanyText = sifrovanyText + str(sifra)
-        sifrovanyText = sifrovanyText + ' '
+        sifrovanyText = sifrovanyText + " "
         bchars.clear()
         chars.clear()
     
@@ -84,27 +97,38 @@ def sifruj(e,n, vstupText):
     # print(chars)
     # print(bchars)
     # print(number)
-    # print(str(sifrovanyText))
     return sifrovanyText
     
-    
+def asciiToChar(vstup):
+    return''.join(chr(i) for i in vstup)  
+
 def desifruj(d,n, sifrovanyText):
-    blockLen = 5 * 12
-    binaryLen = 12
-    blocks = sifrovanyText.split()
+    text = []
+    text = sifrovanyText.split()
+    desifrovanyText = ''
+    bchars = []
+    chars = []
 
-    plainText = ''
-    for block in blocks:
-        decrypt = pow(int(block), d, n)
-        binaryBlock = format(decrypt, 'b').zfill(blockLen)
-        binaryChars = []
-        for i in range(0, len(binaryBlock), binaryLen):
-            binaryChars.append(binaryBlock[i: i + binaryLen])
-        chars = []
-        for bchar in binaryChars:
-            if int(bchar, 2) != 0:
-                chars.append(int(bchar, 2))
-        for char in chars:
-            plainText += chr(char)
+    for part in text:
+        number = int(part)
+        desifra = pow(number,d,n)
 
-    return plainText
+        bpart = decToBin(desifra,60)
+        #print(bpart)
+        bchars = rozdelenie(bpart,12)
+        #print(bchars)
+        for bchar in bchars:
+            #print(bchar)
+            bnum = binToDec(bchar)
+            #print(bnum)
+            if bnum != 0:
+                chars.append(bnum)
+                #print(bnum)
+        #print(chars)
+        desifrovanyText = desifrovanyText + asciiToChar(chars)
+        #print(desifrovanyText)
+        bchars.clear()
+        chars.clear()
+          
+    #print(desifrovanyText)    
+    return desifrovanyText
